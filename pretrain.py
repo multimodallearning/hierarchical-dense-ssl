@@ -17,10 +17,8 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from vox2vec.default_params import *
-from vox2vec.pretrain.nako_data import NAKODataset
+from vox2vec.pretrain.mri_data import NAKODataset
 from vox2vec.pretrain.flare_amos_data import FlareAmosDataset
-from vox2vec.pretrain.total_segmentator_data import TotalSegmentatorDataset
-from vox2vec.utils.data import Pool
 from vox2vec.eval.btcv import BTCV
 from vox2vec.eval.amos_mri_conventional import AMOSMRI
 from vox2vec.nn import FPN3d, FPNLinearHead, FPNNonLinearHead
@@ -33,13 +31,11 @@ def parse_args():
 
     parser.add_argument('--probing_dataset', default='amos_mri')
     # parser.add_argument('--pretraining_dataset', default='flare_amos')
-    # parser.add_argument('--pretraining_dataset', default='total_segmentator')
     parser.add_argument('--pretraining_dataset', default='nako_1000')
 
-    parser.add_argument('--cache_dir', default='/mnt/share/experiments/label/vox2vec/submission/nako1000/data_cache')
-    parser.add_argument('--log_dir', default='/mnt/share/experiments/label/vox2vec/submission/pretraining_nako1000_separateinfonce_32x5_50000')
-    parser.add_argument('--root_data_dir', default='/mnt/share/data/nako_1000/nii_allmod_preprocessed')
-    # parser.add_argument('--root_data_dir', default='/mnt/share/data/total_segmentator/raw')
+    parser.add_argument('--cache_dir', default='/home/kats/share/experiments/label/vox2vec/debug/data_cache')
+    parser.add_argument('--log_dir', default='/home/kats/share/experiments/label/vox2vec/debug')
+    parser.add_argument('--root_data_dir', default='/home/kats/share/data/nako_1000/nii_allmod_preprocessed')
     # parser.add_argument('--amos_dir', default='/mnt/share/data/amos/zip')
     # parser.add_argument('--flare_dir', default='/mnt/share/data/flare/zip')
     # parser.add_argument('--probing_data_dir', default='/mnt/share/data/amos')
@@ -66,10 +62,10 @@ def parse_args():
 
 def main(args):
 
-    Task.init(
-        project_name='Label',
-        task_name='pretraining_nako1000_separateinfonce_32x5_50000'
-    )
+    # Task.init(
+    #     project_name='Label',
+    #     task_name='pretraining_nako1000_separateinfonce_32x5_50000'
+    # )
 
     spacing = tuple(args.spacing)
     patch_size = tuple(args.patch_size)
@@ -81,17 +77,6 @@ def main(args):
             max_num_voxels_per_patch=MAX_NUM_VOXELS_PER_PATCH,
             batch_size=args.pretrain_batch_size,
             data_dir=args.root_data_dir,
-        )
-    elif args.pretraining_dataset == 'total_segmentator':
-        pretrain_dataset = TotalSegmentatorDataset(
-            cache_dir=args.cache_dir,
-            patch_size=patch_size,
-            max_num_voxels_per_patch=MAX_NUM_VOXELS_PER_PATCH,
-            batch_size=args.pretrain_batch_size,
-            data_dir=args.root_data_dir,
-            window_hu=WINDOW_HU,
-            min_window_hu=MIN_WINDOW_HU,
-            max_window_hu=MAX_WINDOW_HU
         )
     elif args.pretraining_dataset == 'flare_amos':
         pretrain_dataset = FlareAmosDataset(
@@ -107,13 +92,11 @@ def main(args):
             flare_dir=args.flare_dir,
         )
 
-    pretrain_pool = Pool(
+    pretrain_dataloader = DataLoader(
         dataset=pretrain_dataset,
-        num_samples=args.num_batches_per_epoch,
+        batch_size=None,
         num_workers=args.pretrain_num_workers,
-        buffer_size=500
     )
-    pretrain_dataloader = DataLoader(pretrain_pool, batch_size=None)
 
     in_channels = 1
     backbone = FPN3d(in_channels, args.base_channels, args.num_scales)
@@ -177,7 +160,6 @@ def main(args):
         },
         # val_dataloaders=probing_datamodule.val_dataloader(),
     )
-    pretrain_pool.pipeline.close()
     # probing_datamodule.train_dataset.pipeline.close()
 
 if __name__ == '__main__':
