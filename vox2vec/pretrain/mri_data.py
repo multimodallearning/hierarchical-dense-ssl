@@ -8,8 +8,6 @@ from imops import crop_to_box
 import torch
 from torch.utils.data import Dataset
 
-from connectome import Source, meta, Chain, Apply, Transform, CacheToDisk
-
 from vox2vec.utils.intensity_augmentations import AppearanceTransform
 from vox2vec.processing import (
     BODY_THRESHOLD_MRI,
@@ -19,29 +17,8 @@ from vox2vec.processing import (
     gaussian_sharpen
 )
 
-
-class NAKOSource(Source):
-    _root: str
-
-    @meta
-    def train_ids(_root):
-        return sorted({
-            file.name
-            for file in Path(_root).glob('*2_3D_GRE_TRA_W*.nii.gz')
-        })
-
-    def _image_nii(id_, _root):
-        file,  = Path(_root).glob(f'{id_}')
-        return nibabel.load(file)
-
-    def image(_image_nii):
-        return _image_nii.get_fdata().astype(np.float32)
-
-    def affine(_image_nii):
-        return _image_nii.affine
-
-
 class NAKODataset(Dataset):
+
     def __init__(
             self,
             cache_dir: str,
@@ -51,17 +28,7 @@ class NAKODataset(Dataset):
             data_dir: str,
     ) -> None:
 
-        source = NAKOSource(root=data_dir)
-
-        # use connectome for smart cashing
-        preprocessing = Chain(
-            Transform(__inherit__=True, body_voxels=lambda image: np.argwhere(get_body_mask(image, BODY_THRESHOLD_MRI)))
-        )
-
-        pipeline = source >> preprocessing >> CacheToDisk.simple('image', 'body_voxels', root=cache_dir)
-
-        self.ids = source.train_ids
-        self.load_example = pipeline._compile(['image', 'body_voxels'])
+        self.data_paths = [data_path for data_path in Path(data_dir).glob('*2_3D_GRE_TRA_W*.nii.gz')]
         self.patch_size = patch_size
         self.max_num_voxels_per_patch = max_num_voxels_per_patch
         self.batch_size = batch_size
@@ -73,11 +40,17 @@ class NAKODataset(Dataset):
             inpaint_rate=0.2
         )
 
+    def load_example(self, data_path):
+        image = nibabel.load(data_path).get_fdata().astype(np.float32)
+        voxels = np.argwhere(get_body_mask(image, BODY_THRESHOLD_MRI))
+        return image, voxels
+
     def __len__(self):
-        return len(self.ids)
+        return len(self.data_paths)
 
     def __getitem__(self, i):
-        args = [*self.load_example(self.ids[i]), self.patch_size, self.max_num_voxels_per_patch, self.style_aug]
+        a = self.load_example(self.data_paths[i])
+        args = [*self.load_example(self.data_paths[i]), self.patch_size, self.max_num_voxels_per_patch, self.style_aug]
         views = [sample_views(*args) for _ in range(self.batch_size)]
         patches_1_aug, patches_2_aug, patches_1, patches_2, voxels_1, voxels_2 = zip(*views)
         patches_1 = torch.tensor(np.stack([p[None] for p in patches_1]))
