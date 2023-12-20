@@ -3,10 +3,7 @@ from imops import pad
 from skimage import morphology
 from skimage.segmentation import flood
 
-
-
-BODY_THRESHOLD_HU = -500
-BODY_THRESHOLD_MRI = 0.03
+BODY_THRESHOLD = 0.3
 
 
 def get_body_mask(image: np.ndarray, threshold: float) -> np.ndarray:

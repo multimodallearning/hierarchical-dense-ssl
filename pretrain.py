@@ -17,8 +17,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from vox2vec.default_params import *
-from vox2vec.pretrain.mri_data import NAKODataset
-from vox2vec.pretrain.flare_amos_data import FlareAmosDataset
+from vox2vec.pretrain.pretraining_dataset import PretrainingDataset
 from vox2vec.eval.btcv import BTCV
 from vox2vec.eval.amos_mri_conventional import AMOSMRI
 from vox2vec.nn import FPN3d, FPNLinearHead, FPNNonLinearHead
@@ -30,20 +29,14 @@ def parse_args():
     parser = ArgumentParser()
 
     parser.add_argument('--probing_dataset', default='amos_mri')
-    # parser.add_argument('--pretraining_dataset', default='flare_amos')
-    parser.add_argument('--pretraining_dataset', default='nako_1000')
+    parser.add_argument('--pretraining_dataset', default='nako')
 
     parser.add_argument('--cache_dir', default='/home/kats/share/experiments/label/vox2vec/debug/data_cache')
     parser.add_argument('--log_dir', default='/home/kats/share/experiments/label/vox2vec/debug')
-    parser.add_argument('--root_data_dir', default='/home/kats/share/data/nako_1000/nii_allmod_preprocessed')
-    # parser.add_argument('--amos_dir', default='/mnt/share/data/amos/zip')
-    # parser.add_argument('--flare_dir', default='/mnt/share/data/flare/zip')
+    parser.add_argument('--root_data_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/nako/images')
+    parser.add_argument('--amos_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/amos/images')
+    parser.add_argument('--flare_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/flare/images')
     # parser.add_argument('--probing_data_dir', default='/mnt/share/data/amos')
-
-    # parser.add_argument('--cache_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/nako1000/data_cache/')
-    # parser.add_argument('--log_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/debug')
-    # parser.add_argument('--root_data_dir', default='/home/kats/storage/staff/eytankats/data/nako_1000/nii_allmod_preprocessed')
-    # parser.add_argument('--probing_data_dir', default='/home/kats/storage/staff/eytankats/data/amos')
 
     parser.add_argument('--spacing', nargs='+', type=float, default=SPACING)
     parser.add_argument('--patch_size', nargs='+', type=int, default=PATCH_SIZE)
@@ -67,35 +60,20 @@ def main(args):
     #     task_name='pretraining_nako1000_separateinfonce_32x5_50000'
     # )
 
-    spacing = tuple(args.spacing)
     patch_size = tuple(args.patch_size)
 
-    if args.pretraining_dataset == 'nako_1000':
-        pretrain_dataset = NAKODataset(
-            cache_dir=args.cache_dir,
-            patch_size=patch_size,
-            max_num_voxels_per_patch=MAX_NUM_VOXELS_PER_PATCH,
-            batch_size=args.pretrain_batch_size,
-            data_dir=args.root_data_dir,
-        )
-    elif args.pretraining_dataset == 'flare_amos':
-        pretrain_dataset = FlareAmosDataset(
-            cache_dir=args.cache_dir,
-            patch_size=patch_size,
-            spacing=args.spacing,
-            max_num_voxels_per_patch=MAX_NUM_VOXELS_PER_PATCH,
-            batch_size=args.pretrain_batch_size,
-            window_hu=WINDOW_HU,
-            min_window_hu=MIN_WINDOW_HU,
-            max_window_hu=MAX_WINDOW_HU,
-            amos_dir=args.amos_dir,
-            flare_dir=args.flare_dir,
-        )
+    pretrain_dataset = PretrainingDataset(
+        patch_size=patch_size,
+        max_num_voxels_per_patch=MAX_NUM_VOXELS_PER_PATCH,
+        batch_size=args.pretrain_batch_size,
+        pretraining_dataset=args.pretraining_dataset
+    )
 
     pretrain_dataloader = DataLoader(
         dataset=pretrain_dataset,
         batch_size=None,
-        num_workers=args.pretrain_num_workers,
+        shuffle=True,
+        num_workers=args.pretrain_num_workers
     )
 
     in_channels = 1
@@ -141,6 +119,7 @@ def main(args):
     #     FPNNonLinearHead(args.base_channels, args.num_scales, num_classes)
     # ]
     # probing_callback = OnlineProbing(*heads, patch_size=patch_size)
+
     checkpoint_callback_1 = ModelCheckpoint(every_n_epochs=25)
     checkpoint_callback_2 = ModelCheckpoint(save_top_k=4, monitor='epoch', mode='max', every_n_epochs=250, filename='{epoch:02d}')
 

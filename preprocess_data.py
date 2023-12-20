@@ -104,8 +104,8 @@ for idx, data_id in enumerate(ids):
     min_val.append(np.min(np_image))
     max_val.append(np.max(np_image))
 
-    if (idx % 10) == 0:
-        print(f'{idx + 1} images processed')
+    if ((idx + 1) % 10) == 0:
+        print(f'{idx} images processed')
 
 df = pd.DataFrame(data={
     'path': image_names,

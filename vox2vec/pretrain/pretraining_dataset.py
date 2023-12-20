@@ -4,31 +4,35 @@ import numpy as np
 from typing import *
 from pathlib import Path
 from imops import crop_to_box
+from matplotlib import pyplot as plt
 
 import torch
 from torch.utils.data import Dataset
 
+from vox2vec.utils.box import mask_to_bbox
 from vox2vec.utils.intensity_augmentations import AppearanceTransform
-from vox2vec.processing import (
-    BODY_THRESHOLD_MRI,
-    sample_box,
-    get_body_mask,
-    gaussian_filter,
-    gaussian_sharpen
-)
+from vox2vec.processing import BODY_THRESHOLD, sample_box, get_body_mask
 
-class NAKODataset(Dataset):
+NAKO_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/nako/images'
+AMOS_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/amos/images'
+FLARE_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/flare/images'
+
+class PretrainingDataset(Dataset):
 
     def __init__(
             self,
-            cache_dir: str,
             patch_size: Tuple[int, int, int],
             max_num_voxels_per_patch: int,
             batch_size: int,
-            data_dir: str,
+            pretraining_dataset: str,
     ) -> None:
 
-        self.data_paths = [data_path for data_path in Path(data_dir).glob('*2_3D_GRE_TRA_W*.nii.gz')]
+        if pretraining_dataset == 'nako':
+            self.data_paths = [data_path for data_path in Path(NAKO_DATA_DIR).glob('*.nii.gz')]
+        if pretraining_dataset == 'flare_amos':
+            self.data_paths = ([data_path for data_path in Path(AMOS_DATA_DIR).glob('*.nii.gz')] +
+                               [data_path for data_path in Path(FLARE_DATA_DIR).glob('*.nii.gz')])
+
         self.patch_size = patch_size
         self.max_num_voxels_per_patch = max_num_voxels_per_patch
         self.batch_size = batch_size
@@ -42,7 +46,18 @@ class NAKODataset(Dataset):
 
     def load_example(self, data_path):
         image = nibabel.load(data_path).get_fdata().astype(np.float32)
-        voxels = np.argwhere(get_body_mask(image, BODY_THRESHOLD_MRI))
+
+        box = mask_to_bbox(image >= BODY_THRESHOLD)
+        image = crop_to_box(image, box, axis=(-3, -2, -1))
+
+        # center_slice = image.shape[2] // 2
+        # for image_slice in range(center_slice, center_slice + 1):
+        #     plt.imshow(image[:, :, image_slice], cmap='gray')
+        #     plt.colorbar()
+        #     plt.show()
+        #     plt.close()
+
+        voxels = np.argwhere(get_body_mask(image, BODY_THRESHOLD))
         return image, voxels
 
     def __len__(self):
@@ -89,28 +104,10 @@ def sample_views(
 def sample_view(image, voxels, anchor_voxel, patch_size, style_aug):
     assert image.ndim == 3
 
-    # spatial augmentations: random rescale, rotation and crop
     box = sample_box(image.shape, patch_size, anchor_voxel)
     image = crop_to_box(image, box, axis=(-3, -2, -1))
     shift = box[0]
     voxels = voxels - shift
-
-    # intensity augmentations
-    # if random.uniform(0, 1) < 0.5:
-    #     if random.uniform(0, 1) < 0.5:
-    #         # random gaussian blur in axial plane
-    #         sigma = random.uniform(0.25, 1.5)
-    #         image = gaussian_filter(image, sigma, axis=(0, 1))
-    #     else:
-    #         # random gaussian sharpening in axial plane
-    #         sigma_1 = random.uniform(0.5, 1.0)
-    #         sigma_2 = 0.5
-    #         alpha = random.uniform(10.0, 30.0)
-    #         image = gaussian_sharpen(image, sigma_1, sigma_2, alpha, axis=(0, 1))
-    #
-    # if random.uniform(0, 1) < 0.5:
-    #     sigma_hu = random.uniform(0, 0.1)
-    #     image = image + np.random.normal(0, sigma_hu, size=image.shape).astype('float32')
 
     image_aug = style_aug.rand_aug(image.copy())
 

@@ -21,10 +21,10 @@ def mask_to_bbox(mask: np.ndarray) -> np.ndarray:
             left, right = 0, 0
 
         # Uncomment for MRI data
-        if right - left < 128:
-            offset = 128 - (right - left)
-            right += offset // 2 + offset % 2
-            left -= offset // 2
+        # if right - left < 128:
+        #     offset = 128 - (right - left)
+        #     right += offset // 2 + offset % 2
+        #     left -= offset // 2
 
         start.insert(0, left)
         stop.insert(0, right + 1)
