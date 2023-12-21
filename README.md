@@ -8,4 +8,4 @@ Code is based on https://github.com/mishgon/vox2vec.
 Refactoring progress:
 19.12.2023: completed prepreprocessing of the data for pretraining.
 20.12.2023: completed pretraining dataset.
-
+21.12.2023: completed pretraining procedure.
