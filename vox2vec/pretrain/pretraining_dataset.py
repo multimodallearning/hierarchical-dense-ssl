@@ -24,6 +24,7 @@ class PretrainingDataset(Dataset):
             patch_size: Tuple[int, int, int],
             max_num_voxels_per_patch: int,
             batch_size: int,
+            batches_per_epoch: int,
             pretraining_dataset: str,
     ) -> None:
 
@@ -36,6 +37,7 @@ class PretrainingDataset(Dataset):
         self.patch_size = patch_size
         self.max_num_voxels_per_patch = max_num_voxels_per_patch
         self.batch_size = batch_size
+        self.batches_per_epoch = batches_per_epoch
 
         self.style_aug = AppearanceTransform(
             local_rate=0.8,
@@ -47,25 +49,26 @@ class PretrainingDataset(Dataset):
     def load_example(self, data_path):
         image = nibabel.load(data_path).get_fdata().astype(np.float32)
 
-        box = mask_to_bbox(image >= BODY_THRESHOLD)
+        box = mask_to_bbox(image >= BODY_THRESHOLD, self.patch_size)
         image = crop_to_box(image, box, axis=(-3, -2, -1))
 
         # center_slice = image.shape[2] // 2
-        # for image_slice in range(center_slice, center_slice + 1):
-        #     plt.imshow(image[:, :, image_slice], cmap='gray')
-        #     plt.colorbar()
-        #     plt.show()
-        #     plt.close()
+        # plt.imshow(image[:, :, center_slice], cmap='gray')
+        # plt.colorbar()
+        # plt.show()
+        # plt.close()
 
         voxels = np.argwhere(get_body_mask(image, BODY_THRESHOLD))
         return image, voxels
 
     def __len__(self):
-        return len(self.data_paths)
+        return self.batches_per_epoch
 
     def __getitem__(self, i):
-        a = self.load_example(self.data_paths[i])
-        args = [*self.load_example(self.data_paths[i]), self.patch_size, self.max_num_voxels_per_patch, self.style_aug]
+
+        idx = np.random.randint(0, len(self.data_paths))
+
+        args = [*self.load_example(self.data_paths[idx]), self.patch_size, self.max_num_voxels_per_patch, self.style_aug]
         views = [sample_views(*args) for _ in range(self.batch_size)]
         patches_1_aug, patches_2_aug, patches_1, patches_2, voxels_1, voxels_2 = zip(*views)
         patches_1 = torch.tensor(np.stack([p[None] for p in patches_1]))
@@ -84,7 +87,7 @@ def sample_views(
         max_num_voxels: int,
         style_aug
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    anchor_voxel = random.choice(roi_voxels)  # (3,)
+    anchor_voxel = random.choice(roi_voxels)
 
     patch_1_aug, patch_1, roi_voxels_1 = sample_view(image, roi_voxels, anchor_voxel, patch_size, style_aug)
     patch_2_aug, patch_2, roi_voxels_2 = sample_view(image, roi_voxels, anchor_voxel, patch_size, style_aug)

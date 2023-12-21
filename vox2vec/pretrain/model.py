@@ -3,7 +3,6 @@ from typing import *
 import logging
 logging.getLogger().setLevel(logging.WARNING)
 
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,7 +13,7 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 
 from vox2vec.nn import Lambda
-from vox2vec.nn.functional import select_from_pyramid, sum_pyramid_channels
+from vox2vec.nn.functional import select_from_pyramid
 
 
 class Vox2Vec(pl.LightningModule):
@@ -50,8 +49,6 @@ class Vox2Vec(pl.LightningModule):
         self.save_hyperparameters(ignore='backbone')
 
         self.backbone = backbone
-        # embed_dim = sum_pyramid_channels(base_channels, num_scales)
-        # embed_dim = 192
         embed_dim = 160
         self.proj_head = nn.Sequential(
             nn.Linear(embed_dim, embed_dim),
@@ -187,7 +184,6 @@ class Vox2Vec(pl.LightningModule):
         mse_loss = (torch.mean((rest_patches_1 - patches_1) ** 2) + torch.mean((rest_patches_2 - patches_2) ** 2)) / 2
 
         loss = info_nce_loss_total + 10 * mse_loss
-        # loss = 10 * mse_loss
 
         self.log(f'pretrain/info_nce_loss', info_nce_loss_total, on_epoch=True)
         self.log(f'pretrain/mse_loss', mse_loss, on_epoch=True)
