@@ -26,7 +26,6 @@ percentile_max = 99.99  # upper percentile to calculate upper bound for clipping
 vol_clip_min = -175  # -175 is a lower bound for CT abdomen window, will be used only if modality == 'ct'
 vol_clip_max = 250  # 250 is an upper bound for CT abdomen window, will be used only if modality == 'ct'
 
-# For AMOS CT data flip x should be commented out
 C3D_TASK_STRING_IMG = \
     f"-interpolation Linear " \
     f"-resample-mm {spacing_x}x{spacing_y}x{spacing_z}mm " \
@@ -105,7 +104,7 @@ for idx, data_id in enumerate(ids):
     max_val.append(np.max(np_image))
 
     if ((idx + 1) % 10) == 0:
-        print(f'{idx} images processed')
+        print(f'{idx + 1} images processed')
 
 df = pd.DataFrame(data={
     'path': image_names,
