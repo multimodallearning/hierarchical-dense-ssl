@@ -9,3 +9,4 @@ Refactoring progress:
 19.12.2023: completed prepreprocessing of the data for pretraining.
 20.12.2023: completed pretraining dataset.
 21.12.2023: completed pretraining procedure.
+24.12.2023: completed preprocessinf of the data for downstream task.
