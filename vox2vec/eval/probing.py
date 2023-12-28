@@ -13,7 +13,6 @@ from vox2vec.nn.functional import (
 )
 
 
-
 class Probing(pl.LightningModule):
     def __init__(
             self,
@@ -53,12 +52,11 @@ class Probing(pl.LightningModule):
         #     plt.close()
 
         with torch.no_grad(), eval_mode(self.backbone):
-            backbone_outputs = self.backbone(images)
+            backbone_outputs = self.backbone(images.unsqueeze(1))
 
         for i, head in enumerate(self.heads):
             pred_logits = head(backbone_outputs)
-            # loss, logs = compute_binary_segmentation_loss(pred_logits, gt_masks, rois, logs_prefix=f'train/head_{i}_')
-            loss, logs = compute_binary_segmentation_loss(pred_logits, gt_masks, None, logs_prefix=f'train/head_{i}_')  # Uncomment for MRI data
+            loss, logs = compute_binary_segmentation_loss(pred_logits, gt_masks, None, logs_prefix=f'train/head_{i}_')
             self.log_dict(logs, on_epoch=True, on_step=False)
             self.manual_backward(loss)
 
@@ -68,9 +66,8 @@ class Probing(pl.LightningModule):
         image, roi, gt_mask = batch
 
         for i, head in enumerate(self.heads):
-            # pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, roi)
-            pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, None)  # Uncomment for MRI data
-            dice_scores = compute_dice_score(pred_probas, gt_mask, reduce=lambda x: x)
+            pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, None)
+            dice_scores = compute_dice_score(pred_probas, gt_mask[0], reduce=lambda x: x)
             for j, dice_score in enumerate(dice_scores):
                 self.log(f'val/head_{i}_dice_score_for_cls_{j}', dice_score, on_epoch=True)
             self.log(f'val/head_{i}_avg_dice_score', dice_scores.mean(), on_epoch=True)
@@ -86,10 +83,9 @@ class Probing(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         image, roi, gt_mask = batch
         for i, head in enumerate(self.heads):
-            # pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, roi)
-            pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, None)  # Uncomment for MRI data
+            pred_probas = predict(image, self.patch_size, self.backbone, head, self.device, None)
             pred_mask = pred_probas >= self.threshold
-            dice_scores = compute_dice_score(pred_mask, gt_mask, reduce=lambda x: x)
+            dice_scores = compute_dice_score(pred_mask, gt_mask[0], reduce=lambda x: x)
             for j, dice_score in enumerate(dice_scores):
                 self.log(f'test/head_{i}_dice_score_for_cls_{j}', dice_score, on_epoch=True)
             self.log(f'test/head_{i}_avg_dice_score', dice_scores.mean(), on_epoch=True)

@@ -8,6 +8,8 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import torch
+from torch.utils.data import DataLoader
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, BackboneFinetuning
@@ -15,8 +17,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, BackboneFinetuning
 from clearml import Task
 
 from vox2vec.default_params import *
-from vox2vec.eval.btcv import BTCV
-from vox2vec.eval.amos_mri import AMOSMRI
+from vox2vec.eval.downstream_dataset import DownstreamDataset
 from vox2vec.nn import FPN3d, FPNLinearHead, FPNNonLinearHead
 from vox2vec.eval.end_to_end import EndToEnd
 from vox2vec.eval.probing import Probing
@@ -25,33 +26,25 @@ from vox2vec.utils.misc import save_json
 def parse_args():
     parser = ArgumentParser()
     
-    parser.add_argument('--dataset', default='amos_mri')
-    # parser.add_argument('--dataset', default='btcv')
-    parser.add_argument('--setup', default='from_scratch')
+    parser.add_argument('--dataset', default='btcv')  # amos or btcv
+    parser.add_argument('--setup', default='from_scratch')  # from_scratch, fine-tuning, probing
 
-    # parser.add_argument('--data_root_dir', default='/home/kats/share/data/amos')
-    # parser.add_argument('--cache_dir', default='/home/kats/share/experiments/label/vox2vec/submission/amos/data_cache')
-    # parser.add_argument('--ckpt', default='/home/kats/share/experiments/label/vox2vec/submission/ssl_models/nako1000_equal_contrib_1convhead_32x5_epoch=499-step=50000.ckpt')
-    # parser.add_argument('--log_dir', default='/home/kats/share/experiments/label/vox2vec/submission/amos_mri_fine_tuning_equal_contrib_1convhead_32x5_50000_4')
-
-    parser.add_argument('--data_root_dir', default='/home/kats/storage/staff/eytankats/data/amos')
-    # parser.add_argument('--data_root_dir', default='/home/kats/storage/staff/eytankats/data/btcv/RawData')
-    parser.add_argument('--cache_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/amos/data_cache')
-    parser.add_argument('--ckpt', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/ssl_models/nako1000_equal_contrib_1convhead_32x5_epoch=499-step=50000.ckpt')
-    parser.add_argument('--log_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/debug')
+    parser.add_argument('--data_root_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/downstream/btcv/')
+    parser.add_argument('--ckpt', default='/home/kats/share/experiments/label/vox2vec/nako1000_pretraining_equal_contribution_reproduction_32x5_50000/pretrain/version_0/checkpoints/epoch=499.ckpt')
+    parser.add_argument('--log_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/debug')
 
     parser.add_argument('--split', type=int, default=0)
-    parser.add_argument('--spacing', nargs='+', type=float, default=SPACING)
-    parser.add_argument('--patch_size', nargs='+', type=int, default=PATCH_SIZE)
+    parser.add_argument('--examples_num', default='all')
 
-    parser.add_argument('--batch_size', type=int, default=7)
-    parser.add_argument('--num_workers', type=int, default=7)
+    parser.add_argument('--patch_size', nargs='+', type=int, default=PATCH_SIZE)
+    parser.add_argument('--batch_size', type=int, default=10)
+    parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--num_batches_per_epoch', type=int, default=300)
     parser.add_argument('--max_epochs', type=int, default=150)
-    parser.add_argument('--warmup_epochs', type=int, default=50)  # 50, used only in finetuning setup
+    parser.add_argument('--warmup_epochs', type=int, default=50)  # used only in finetuning setup
 
-    parser.add_argument('--base_channels', type=int, default=32)  # BASE_CHANNELS, 32
-    parser.add_argument('--num_scales', type=int, default=5)  # NUM_SCALES, 5
+    parser.add_argument('--base_channels', type=int, default=BASE_CHANNELS)
+    parser.add_argument('--num_scales', type=int, default=NUM_SCALES)
 
     return parser.parse_args()
 
@@ -59,38 +52,57 @@ def main(args):
 
     # Task.init(
     #     project_name='Label',
-    #     task_name='amos_mri_from_scratch_32x5_50000_4_split2'
+    #     task_name='amos_mri_fine_tuning_equal_contribution_reproduction_1convhead_32x5_50000_split4'
     # )
 
-    if args.dataset == 'btcv':
-        datamodule = BTCV(
-            root=args.data_root_dir,
-            cache_dir=args.cache_dir,
-            spacing=tuple(args.spacing),
-            window_hu=WINDOW_HU,
-            patch_size=tuple(args.patch_size),
-            batch_size=args.batch_size,
-            num_batches_per_epoch=args.num_batches_per_epoch,
-            num_workers=args.num_workers,
-            buffer_size=args.batch_size * 5,
-            split=args.split,
-            val_size=4
-        )
-        num_classes = BTCV.num_classes
-    elif args.dataset == 'amos_mri':
-        datamodule = AMOSMRI(
-            root=args.data_root_dir,
-            cache_dir=args.cache_dir,
-            patch_size=tuple(args.patch_size),
-            batch_size=args.batch_size,
-            num_batches_per_epoch=args.num_batches_per_epoch,
-            num_workers=args.num_workers,
-            buffer_size=args.batch_size * 5,
-            split=args.split
-        )
-        num_classes = AMOSMRI.num_classes
-    else:
-        raise NotImplementedError(f'Dataset {args.dataset} is not supported.')
+    train_dataset = DownstreamDataset(
+        dataset=args.dataset,
+        patch_size=tuple(args.patch_size),
+        batch_size=args.batch_size,
+        batches_per_epoch=args.num_batches_per_epoch,
+        split=args.split,
+        mode='training'
+    )
+    num_classes = train_dataset.num_classes
+
+    val_dataset = DownstreamDataset(
+        dataset=args.dataset,
+        patch_size=tuple(args.patch_size),
+        batch_size=args.batch_size,
+        batches_per_epoch=args.num_batches_per_epoch,
+        split=args.split,
+        mode='validation'
+    )
+
+    test_dataset = DownstreamDataset(
+        dataset=args.dataset,
+        patch_size=tuple(args.patch_size),
+        batch_size=args.batch_size,
+        batches_per_epoch=args.num_batches_per_epoch,
+        split=args.split,
+        mode='test'
+    )
+
+    train_dataloader = DataLoader(
+        dataset=train_dataset,
+        batch_size=None,
+        shuffle=True,
+        num_workers=args.num_workers
+    )
+
+    val_dataloader = DataLoader(
+        dataset=val_dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=args.num_workers
+    )
+
+    test_dataloader = DataLoader(
+        dataset=test_dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=args.num_workers
+    )
 
     in_channels = 1
     backbone = FPN3d(in_channels, args.base_channels, args.num_scales)
@@ -156,11 +168,10 @@ def main(args):
         max_epochs=args.max_epochs,
     )
 
-    trainer.fit(model, datamodule)
-    datamodule.train_dataset.pipeline.close()  # kill data loading processes
+    trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
     log_dir = Path(logger.log_dir)
-    test_metrics = trainer.test(model, datamodule=datamodule, ckpt_path=log_dir / 'checkpoints/best_avg.ckpt')
+    test_metrics = trainer.test(model, dataloaders=test_dataloader, ckpt_path=log_dir / 'checkpoints/best_avg.ckpt')
     save_json(test_metrics, log_dir / 'test_metrics.json')
 
     # for split in range(5):

@@ -24,14 +24,22 @@ def mask_to_bbox(mask: np.ndarray, min_size) -> np.ndarray:
         if right - left < min_size[2-idx]:
             offset = 128 - (right - left)
 
-            if (left - offset//2) >= 0 or (right + offset//2 + offset%2) < mask.shape[2-idx]:
+            if (left - offset//2) >= 0 and (right + offset//2 + offset%2) < mask.shape[2-idx]:
                 right += offset//2 + offset%2
                 left -= offset//2
             elif (left - offset//2) < 0:
-                right += offset - left
+
+                if right + offset - left < mask.shape[2-idx]:
+                    right += offset - left
+                else:
+                    right = mask.shape[2-idx] - 1
                 left = 0
+
             elif (right + offset//2 + offset%2) >= mask.shape[2-idx]:
-                left -= offset - (mask.shape[2-idx] - 1 - right)
+                if left - offset - (mask.shape[2-idx] - 1 - right) > 0:
+                    left -= offset - (mask.shape[2-idx] - 1 - right)
+                else:
+                    left = 0
                 right = mask.shape[2-idx] - 1
 
         start.insert(0, left)

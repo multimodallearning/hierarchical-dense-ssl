@@ -30,7 +30,7 @@ class PretrainingDataset(Dataset):
 
         if pretraining_dataset == 'nako':
             self.data_paths = [data_path for data_path in Path(NAKO_DATA_DIR).glob('*.nii.gz')]
-        if pretraining_dataset == 'flare_amos':
+        elif pretraining_dataset == 'flare_amos':
             self.data_paths = ([data_path for data_path in Path(AMOS_DATA_DIR).glob('*.nii.gz')] +
                                [data_path for data_path in Path(FLARE_DATA_DIR).glob('*.nii.gz')])
 
