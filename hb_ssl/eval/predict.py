@@ -3,7 +3,7 @@ from typing import *
 import torch
 from torch import nn
 
-from vox2vec.nn.functional import eval_mode, sw_predict
+from hb_ssl.nn.functional import eval_mode, sw_predict
 
 
 @torch.no_grad()

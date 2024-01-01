@@ -6,7 +6,7 @@ from torch import nn
 import pytorch_lightning as pl
 
 from .predict import predict
-from vox2vec.nn.functional import (
+from hb_ssl.nn.functional import (
     eval_mode,
     compute_dice_score,
     compute_binary_segmentation_loss

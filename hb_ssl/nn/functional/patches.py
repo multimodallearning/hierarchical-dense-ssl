@@ -2,7 +2,7 @@ from typing import *
 import numpy as np
 import torch
 
-from vox2vec.utils.misc import collect
+from hb_ssl.utils.misc import collect
 
 
 @collect

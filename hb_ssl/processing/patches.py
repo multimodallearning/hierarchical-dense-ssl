@@ -4,7 +4,7 @@ import random
 
 from imops import crop_to_box
 
-from vox2vec.utils.misc import collect
+from hb_ssl.utils.misc import collect
 
 
 def sample_box(image_size, patch_size, anchor_voxel=None):

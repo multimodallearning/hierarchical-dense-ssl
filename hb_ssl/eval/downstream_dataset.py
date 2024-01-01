@@ -10,8 +10,8 @@ from matplotlib import pyplot as plt
 import torch
 from torch.utils.data import Dataset
 
-from vox2vec.utils.box import mask_to_bbox
-from vox2vec.processing import BODY_THRESHOLD, sample_patches
+from hb_ssl.utils.box import mask_to_bbox
+from hb_ssl.processing import BODY_THRESHOLD, sample_patches
 
 AMOS_DATA_DIR = '/path/to/preprocessed_amos_mri_dataset/'
 AMOS_LABELS = {

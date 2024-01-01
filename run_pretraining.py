@@ -10,10 +10,10 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-from vox2vec.default_params import *
-from vox2vec.nn import FPN3d
-from vox2vec.pretrain.model import Vox2Vec
-from vox2vec.pretrain.pretraining_dataset import PretrainingDataset
+from hb_ssl.default_params import *
+from hb_ssl.nn import FPN3d
+from hb_ssl.pretrain.model import Vox2Vec
+from hb_ssl.pretrain.pretraining_dataset import PretrainingDataset
 
 
 def parse_args():

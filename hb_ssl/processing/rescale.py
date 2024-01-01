@@ -5,7 +5,7 @@ import warnings
 from connectome import Transform, Mixin, optional, inverse, Input, positional
 from imops import zoom, zoom_to_shape
 
-from vox2vec.utils.misc import normalize_axis_list
+from hb_ssl.utils.misc import normalize_axis_list
 
 
 class _Rescale(Mixin):
