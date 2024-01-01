@@ -118,11 +118,11 @@ def main(args):
         if args.ckpt is not None:
 
             state_dict = torch.load(args.ckpt)['state_dict']
-            for key in list(state_dict.keys()):
-                if 'backbone' not in key:
-                    del state_dict[key]
-            for key in list(state_dict.keys()):
-                state_dict[key.replace("backbone.", "")] = state_dict.pop(key)
+            # for key in list(state_dict.keys()):
+            #     if 'backbone' not in key:
+            #         del state_dict[key]
+            # for key in list(state_dict.keys()):
+            #     state_dict[key.replace("backbone.", "")] = state_dict.pop(key)
             backbone.load_state_dict(state_dict)
 
         heads = [
@@ -139,11 +139,11 @@ def main(args):
 
         if args.ckpt is not None:
             state_dict = torch.load(args.ckpt)['state_dict']
-            for key in list(state_dict.keys()):
-                if 'backbone' not in key:
-                    del state_dict[key]
-            for key in list(state_dict.keys()):
-                state_dict[key.replace("backbone.", "")] = state_dict.pop(key)
+            # for key in list(state_dict.keys()):
+            #     if 'backbone' not in key:
+            #         del state_dict[key]
+            # for key in list(state_dict.keys()):
+            #     state_dict[key.replace("backbone.", "")] = state_dict.pop(key)
             backbone.load_state_dict(state_dict)
 
         head = FPNLinearHead(args.base_channels, args.num_scales, num_classes)
