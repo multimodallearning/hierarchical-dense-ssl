@@ -20,10 +20,7 @@ def parse_args():
     parser = ArgumentParser()
 
     parser.add_argument('--pretraining_dataset', default='nako')
-    parser.add_argument('--log_dir', default='/home/kats/share/experiments/label/vox2vec/nako1000_pretraining_equal_contribution_reproduction_32x5_50000')
-    parser.add_argument('--root_data_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/nako/images')
-    parser.add_argument('--amos_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/amos/images')
-    parser.add_argument('--flare_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/flare/images')
+    parser.add_argument('--log_dir', default='/path/to/output_dir/')
 
     parser.add_argument('--patch_size', nargs='+', type=int, default=PATCH_SIZE)
     parser.add_argument('--pretrain_batch_size', type=int, default=10)

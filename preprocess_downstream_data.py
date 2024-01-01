@@ -12,10 +12,10 @@ import reorient_nii as ornt
 
 from matplotlib import pyplot as plt
 
-AMOS_DIR = '/home/kats/storage/staff/eytankats/data/amos/zip/'
-BTCV_DIR = '/home/kats/storage/staff/eytankats/data/btcv/RawData/Training/'
-C3D_TOOL = '/home/kats/storage/staff/eytankats/tools/c3d-1.1.0-Linux-x86_64/bin/c3d'
-OUTPUT_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/downstream/'
+AMOS_DIR = '/path/to/amos_raw_data_dir/'
+BTCV_DIR = '/path/to/btcv_raw_data_dir/'
+C3D_TOOL = '/path/to/c3d_tool'
+OUTPUT_DIR = '/path/to/output_dir/'
 
 dataset = 'btcv'  # can be amos, btcv
 spacing_x = 1.0  # 1.0 for ct 1.5 for mri

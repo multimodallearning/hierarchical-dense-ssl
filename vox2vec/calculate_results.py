@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 
-ROOT_DIR = '/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/results_csv/amos_mri_fine_tuning_equal_contrib_1convhead_32x5_50000_4'
+ROOT_DIR = '/path/to/experiment/results_csv_dir/'
 FOLDS = [0, 1, 2, 3, 4]
 
 df = pd.DataFrame()

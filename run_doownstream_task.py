@@ -29,9 +29,8 @@ def parse_args():
     parser.add_argument('--dataset', default='btcv')  # amos or btcv
     parser.add_argument('--setup', default='from_scratch')  # from_scratch, fine-tuning, probing
 
-    parser.add_argument('--data_root_dir', default='/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/downstream/btcv/')
-    parser.add_argument('--ckpt', default='/home/kats/share/experiments/label/vox2vec/nako1000_pretraining_equal_contribution_reproduction_32x5_50000/pretrain/version_0/checkpoints/epoch=499.ckpt')
-    parser.add_argument('--log_dir', default='/home/kats/storage/staff/eytankats/experiments/label/vox2vec/debug')
+    parser.add_argument('--ckpt', default='/path/to/pretrained.ckpt')
+    parser.add_argument('--log_dir', default='/path/to/output_dir/')
 
     parser.add_argument('--split', type=int, default=0)
     parser.add_argument('--examples_num', default='all')
@@ -186,9 +185,9 @@ def main(args):
     #         split=split
     #     )
     #
-    #     test_metrics = trainer.test(model, datamodule=datamodule, ckpt_path=f'/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/amos_mri_fine_tuning_equal_contrib_1convhead_32x5_50000/eval/amos_mri/fine-tuning/split_0/version_0/checkpoints/best_avg.ckpt')
+    #     test_metrics = trainer.test(model, datamodule=datamodule, ckpt_path=f'/path/to/downstream.ckpt')
     # df = pd.DataFrame(model.test_results)
-    # df.to_csv("/home/kats/storage/staff/eytankats/experiments/label/vox2vec/submission/results_csv/amos_mri_fine_tuning_equal_contrib_1convhead_32x5_50000.csv", index=False)
+    # df.to_csv("/path/to/results.csv", index=False)
 
 if __name__ == '__main__':
     main(parse_args())

@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 from vox2vec.utils.box import mask_to_bbox
 from vox2vec.processing import BODY_THRESHOLD, sample_patches
 
-AMOS_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/downstream/amos/'
+AMOS_DATA_DIR = '/path/to/preprocessed_amos_mri_dataset/'
 AMOS_LABELS = {
     1: 'Spleen',
     2: 'Right kidney',
@@ -50,7 +50,7 @@ AMOS_DATA_SPLIT_8 = [
     'splits/amos_mri_8_fold4.json'
 ]
 
-BTCV_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/downstream/btcv/'
+BTCV_DATA_DIR = '/path/to/preprocessed_btcv_dataset/'
 BTCV_LABELS = {
     1: 'Spleen',
     2: 'Right kidney',

@@ -13,9 +13,9 @@ from vox2vec.utils.box import mask_to_bbox
 from vox2vec.utils.intensity_augmentations import AppearanceTransform
 from vox2vec.processing import BODY_THRESHOLD, sample_box, get_body_mask
 
-NAKO_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/nako/images'
-AMOS_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/amos/images'
-FLARE_DATA_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/flare/images'
+NAKO_DATA_DIR = '/path/to/preprocessed_nako_dataset/'
+AMOS_DATA_DIR = '/path/to/preprocessed_amos_ct_dataset/'
+FLARE_DATA_DIR = '/path/to/preprocessed_flare_dataset/'
 
 class PretrainingDataset(Dataset):
 

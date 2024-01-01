@@ -11,11 +11,11 @@ import reorient_nii as ornt
 
 from matplotlib import pyplot as plt
 
-AMOS_DIR = '/home/kats/storage/staff/eytankats/data/amos/zip/'
-FLARE_DIR = '/home/kats/storage/staff/eytankats/data/flare/zip/'
-NAKO_DIR = '/home/kats/storage/staff/eytankats/data/nako_1000/nii_allmod/'
-C3D_TOOL = '/home/kats/storage/staff/eytankats/tools/c3d-1.1.0-Linux-x86_64/bin/c3d'
-OUTPUT_DIR = '/home/kats/storage/staff/eytankats/data/hierarchical_dense_ssl/pretraining/'
+AMOS_DIR = '/path/to/amos_raw_data_dir/'
+FLARE_DIR = '/path/to/flare_raw_data_dir/'
+NAKO_DIR = '/path/to/nako_raw_data_dir/'
+C3D_TOOL = '/path/to/c3d_tool'
+OUTPUT_DIR = '/path/to/output_dir/'
 
 dataset = 'nako'  # can be amos, flare, nako
 spacing_x = 1.5  # 1.0 for ct 1.5 for mri
