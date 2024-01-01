@@ -1,14 +1,17 @@
-# hierarchical-dense-ssl
-This repository contains implementation of the paper 'SELF-SUPERVISED LEARNING OF DENSE HIERARCHICAL REPRESENTATIONS FOR MEDICAL IMAGE SEGMENTATION' submitted to ISBI 2024.
+# Self-supervised Learning of Dense Hierarchical Representations for Medical Image Segmentation
+This repository is the implementation of the paper 'Self-supervised Learning of Dense Hierarchical Representations for Medical Image Segmentation' submitted to ISBI 2024.
 
-Current version of code is fully-functional but still requiers adaptation for easy usage, grooming and documenation.
-Code is based on https://github.com/mishgon/vox2vec.
+Current version of code is fully-functional but still requiers adaptation for easy usage, writing documentation and some grooming.  
 
-Refactoring progress:
-19.12.2023: completed prepreprocessing of the data for pretraining.
-20.12.2023: completed pretraining dataset.
-21.12.2023: completed pretraining procedure.
-24.12.2023: completed preprocessing of the data for downstream task.
-28.12.2023: completed downstream dataset and downstream.
+Code is based on [vox2vec repo](https://github.com/mishgon/vox2vec).
 
-Next step: usage instructions.
+## Pretrained models
+
+[Pretrained weights for CT and MRI models.](https://drive.google.com/drive/folders/106mM3_s7m_wu4EoRr-AhilIJ5-r80thU?usp=sharing) 
+
+
+## Usage
+
+### Pretraining
+
+### Downstream task
