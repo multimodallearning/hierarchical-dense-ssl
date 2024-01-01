@@ -2,7 +2,7 @@ from typing import *
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 
-from vox2vec.utils.misc import normalize_axis_list
+from hb_ssl.utils.misc import normalize_axis_list
 
 
 def scale_hu(image_hu: np.ndarray, window_hu: Tuple[float, float]) -> np.ndarray:

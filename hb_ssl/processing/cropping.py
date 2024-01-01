@@ -4,8 +4,8 @@ import numpy as np
 from connectome import Transform, Mixin, positional, inverse, Input, optional
 from imops import crop_to_box, pad
 
-from vox2vec.utils.box import limit_box
-from vox2vec.utils.misc import normalize_axis_list, collect
+from hb_ssl.utils.box import limit_box
+from hb_ssl.utils.misc import normalize_axis_list, collect
 
 
 def restore_crop(x, box, shape, axis, padding_values=0):

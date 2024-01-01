@@ -16,12 +16,12 @@ from pytorch_lightning.callbacks import ModelCheckpoint, BackboneFinetuning
 
 from clearml import Task
 
-from vox2vec.default_params import *
-from vox2vec.eval.downstream_dataset import DownstreamDataset
-from vox2vec.nn import FPN3d, FPNLinearHead, FPNNonLinearHead
-from vox2vec.eval.end_to_end import EndToEnd
-from vox2vec.eval.probing import Probing
-from vox2vec.utils.misc import save_json
+from hb_ssl.default_params import *
+from hb_ssl.eval.downstream_dataset import DownstreamDataset
+from hb_ssl.nn import FPN3d, FPNLinearHead, FPNNonLinearHead
+from hb_ssl.eval.end_to_end import EndToEnd
+from hb_ssl.eval.probing import Probing
+from hb_ssl.utils.misc import save_json
 
 def parse_args():
     parser = ArgumentParser()

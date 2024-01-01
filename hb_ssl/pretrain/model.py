@@ -12,8 +12,8 @@ import torch.nn.functional as F
 
 import pytorch_lightning as pl
 
-from vox2vec.nn import Lambda
-from vox2vec.nn.functional import select_from_pyramid
+from hb_ssl.nn import Lambda
+from hb_ssl.nn.functional import select_from_pyramid
 
 
 class Vox2Vec(pl.LightningModule):

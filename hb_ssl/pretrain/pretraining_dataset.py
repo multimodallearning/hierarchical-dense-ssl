@@ -9,9 +9,9 @@ from matplotlib import pyplot as plt
 import torch
 from torch.utils.data import Dataset
 
-from vox2vec.utils.box import mask_to_bbox
-from vox2vec.utils.intensity_augmentations import AppearanceTransform
-from vox2vec.processing import BODY_THRESHOLD, sample_box, get_body_mask
+from hb_ssl.utils.box import mask_to_bbox
+from hb_ssl.utils.intensity_augmentations import AppearanceTransform
+from hb_ssl.processing import BODY_THRESHOLD, sample_box, get_body_mask
 
 NAKO_DATA_DIR = '/path/to/preprocessed_nako_dataset/'
 AMOS_DATA_DIR = '/path/to/preprocessed_amos_ct_dataset/'
